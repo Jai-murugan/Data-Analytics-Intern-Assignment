@@ -1,0 +1,55 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+user_details = pd.read_excel("Data_Analyst_Intern_Assignment.xlsx", sheet_name = "UserDetails.csv")
+cooking_sessions = pd.read_excel("Data_Analyst_Intern_Assignment.xlsx", sheet_name = "CookingSessions.csv")
+order_details = pd.read_excel("Data_Analyst_Intern_Assignment.xlsx", sheet_name = "OrderDetails.csv")
+
+user_details_cleaned = user_details.drop_duplicates()
+cooking_sessions_cleaned = cooking_sessions.drop_duplicates()
+order_details_cleaned = order_details.drop_duplicates()
+
+user_details_cleaned.columns = user_details.columns.str.replace(" ", "_")
+cooking_sessions_cleaned.columns = cooking_sessions.columns.str.replace(" ", "_")
+order_details_cleaned.columns = order_details.columns.str.replace(" ", "_")
+
+order_details_cleaned['Rating'] = order_details_cleaned['Rating'].fillna(order_details_cleaned['Rating'].mean())
+
+# Analyzing the list of all ordered dishes and identify the most popular dish.
+
+order_details_merged = pd.merge(order_details_cleaned, cooking_sessions_cleaned, how = "inner", on = ["User_ID","Dish_Name","Meal_Type","Session_ID"])
+
+dish_summary = order_details_merged.pivot_table(index = "User_ID",
+                                            columns = ["Dish_Name", "Meal_Type"],
+                                            values = "Amount_(USD)",
+                                            aggfunc = "sum",
+                                            fill_value = 0,
+                                            margins = True,
+                                            margins_name = "Total_amount")
+
+popular_dishes = order_details_merged["Dish_Name"].value_counts()
+most_popular_dish = popular_dishes.idxmax()
+
+demographic_analysis = user_details_cleaned.groupby(["Age", "Location", "Favorite_Meal"]).size().reset_index(name="Count")
+
+plt.figure(figsize=(10, 6))
+popular_dishes.head(5).plot(kind="bar", color="lightgreen")
+plt.title("Top Popular Dishes")
+plt.xlabel("Dish Name")
+plt.ylabel("Number of Orders")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+demographic_pivot = demographic_analysis.pivot(index = ["Age", "Location"], columns="Favorite_Meal", values="Count").fillna(0)
+demographic_pivot.plot(kind="bar", stacked=True, figsize=(12, 6))
+plt.title("Demographic Analysis: Favorite Meal by Location and Age")
+plt.xlabel(["Age", "Location"])
+plt.ylabel("Count")
+plt.legend(title="Favorite Meal")
+plt.tight_layout()
+plt.show()
+                     
+print(f"The most popular dish is '{most_popular_dish}'")
+print(demographic_analysis.head())                   
+
