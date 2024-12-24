@@ -1,3 +1,5 @@
+ 
+
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -13,7 +15,7 @@ user_details_cleaned.columns = user_details.columns.str.replace(" ", "_")
 cooking_sessions_cleaned.columns = cooking_sessions.columns.str.replace(" ", "_")
 order_details_cleaned.columns = order_details.columns.str.replace(" ", "_")
 
-order_details_cleaned['Rating'] = order_details_cleaned['Rating'].fillna(order_details_cleaned['Rating'].mean())
+order_details_cleaned = order_details_cleaned.dropna(how = "any")
 
 # Analyzing the list of all ordered dishes and identify the most popular dish.
 
@@ -29,6 +31,8 @@ dish_summary = order_details_merged.pivot_table(index = "User_ID",
 
 popular_dishes = order_details_merged["Dish_Name"].value_counts()
 most_popular_dish = popular_dishes.idxmax()
+
+# Demographic analysis
 
 demographic_analysis = user_details_cleaned.groupby(["Age", "Location", "Favorite_Meal"]).size().reset_index(name="Count")
 
@@ -49,7 +53,45 @@ plt.ylabel("Count")
 plt.legend(title="Favorite Meal")
 plt.tight_layout()
 plt.show()
+
+# Recommendation by summary
+spaghetti_summary = cooking_sessions_cleaned[cooking_sessions_cleaned["Dish_Name"] == "Spaghetti"]
+
+plt.figure(figsize=(8, 6))
+plt.bar(spaghetti_summary["Duration_(mins)"], spaghetti_summary["Session_Rating"], color="green", alpha=0.7)
+
+plt.title("Bar Graph: Session Duration vs. Rating (Spaghetti)", fontsize=14)
+plt.xlabel("Session Duration (mins)", fontsize=12)
+plt.ylabel("Session Rating", fontsize=12)
+plt.grid(alpha=0.3, linestyle="--", linewidth=0.5)
+plt.show()
                      
 print(f"The most popular dish is '{most_popular_dish}'")
-print(demographic_analysis.head())                   
+print(demographic_analysis.head())     
+print("The rating increases as session duration increases for Spaghetti. So, it is recommended to give more session time for spaghetti")              
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                  
 
